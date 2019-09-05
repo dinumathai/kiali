@@ -5,6 +5,9 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/kiali/kiali/config"
+	"github.com/kiali/kiali/ldap"
+	"github.com/kiali/kiali/ldap/ldaprbac"
 	"github.com/kiali/kiali/log"
 	"github.com/kiali/kiali/prometheus"
 )
@@ -22,6 +25,18 @@ func NamespaceList(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error(err)
 		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	conf := config.Get()
+	if conf.Auth.Strategy == config.AuthStrategyLDAP && conf.Auth.LDAP.LdapRbac.EnableRBAC == true {
+		userDet, err := ldap.ValidateToken(ldap.GetTokenStringFromRequest(r))
+		if err != nil {
+			RespondWithJSON(w, http.StatusUnauthorized, "Unable to validate token")
+			return
+		}
+		accessChecker := ldaprbac.GetAccessChecker(userDet.Status.User)
+		RespondWithJSON(w, http.StatusOK, accessChecker.FilterNameSpaces(namespaces))
 		return
 	}
 

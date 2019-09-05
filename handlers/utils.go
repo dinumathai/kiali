@@ -5,7 +5,12 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/gorilla/mux"
+
 	"github.com/kiali/kiali/business"
+	"github.com/kiali/kiali/config"
+	"github.com/kiali/kiali/ldap"
+	"github.com/kiali/kiali/ldap/ldaprbac"
 	"github.com/kiali/kiali/log"
 	"github.com/kiali/kiali/models"
 	"github.com/kiali/kiali/prometheus"
@@ -63,9 +68,39 @@ func getToken(r *http.Request) (string, error) {
 	}
 }
 
+func checkAccessLDAP(r *http.Request) error {
+	conf := config.Get()
+	if conf.Auth.Strategy != config.AuthStrategyLDAP && conf.Auth.LDAP.LdapRbac.EnableRBAC == true {
+		return nil
+	}
+	userDet, err := ldap.ValidateToken(ldap.GetTokenStringFromRequest(r))
+	if err != nil {
+		return err
+	}
+	accessChecker := ldaprbac.GetAccessChecker(userDet.Status.User)
+	vars := mux.Vars(r)
+	namespace := vars["namespace"]
+	if namespace == "" {
+		return nil
+	}
+	isAllowed, err := accessChecker.IsNameSpaceAllowed(namespace)
+	if !isAllowed && err != nil {
+		return err
+	}
+	if !isAllowed {
+		return errors.New("Access denied for the namespace - " + namespace)
+	}
+	return nil
+}
+
 // getBusiness returns the business layer specific to the users's request
 func getBusiness(r *http.Request) (*business.Layer, error) {
 	token, err := getToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkAccessLDAP(r)
 	if err != nil {
 		return nil, err
 	}

@@ -249,19 +249,32 @@ type AuthConfig struct {
 
 // LDAPConfig provides the details of the LDAP related configuration
 type LDAPConfig struct {
-	LDAPBase               string `yaml:"ldap_base,omitempty"`
-	LDAPBindDN             string `yaml:"ldap_bind_dn,omitempty"`
-	LDAPInsecureSkipVerify bool   `yaml:"ldap_insecure_skip_verify,omitempty"`
-	LDAPGroupFilter        string `yaml:"ldap_group_filter,omitempty"`
-	LDAPHost               string `yaml:"ldap_host,omitempty"`
-	LDAPMailIDKey          string `yaml:"ldap_mail_id_key,omitempty"`
-	LDAPMemberOfKey        string `yaml:"ldap_member_of_key,omitempty"`
-	LDAPPort               int    `yaml:"ldap_port,omitempty"`
-	LDAPRoleFilter         string `yaml:"ldap_role_filter,omitempty"`
-	LDAPSearchFilter       string `yaml:"ldap_search_filter,omitempty"`
-	LDAPUserFilter         string `yaml:"ldap_user_filter,omitempty"`
-	LDAPUserIDKey          string `yaml:"ldap_user_id_key,omitempty"`
-	LDAPUseSSL             bool   `yaml:"ldap_use_ssl,omitempty"`
+	LDAPBase               string         `yaml:"ldap_base,omitempty"`
+	LDAPBindDN             string         `yaml:"ldap_bind_dn,omitempty"`
+	LDAPInsecureSkipVerify bool           `yaml:"ldap_insecure_skip_verify,omitempty"`
+	LDAPGroupFilter        string         `yaml:"ldap_group_filter,omitempty"`
+	LDAPHost               string         `yaml:"ldap_host,omitempty"`
+	LDAPMailIDKey          string         `yaml:"ldap_mail_id_key,omitempty"`
+	LDAPMemberOfKey        string         `yaml:"ldap_member_of_key,omitempty"`
+	LDAPPort               int            `yaml:"ldap_port,omitempty"`
+	LDAPRoleFilter         string         `yaml:"ldap_role_filter,omitempty"`
+	LDAPSearchFilter       string         `yaml:"ldap_search_filter,omitempty"`
+	LDAPUserFilter         string         `yaml:"ldap_user_filter,omitempty"`
+	LDAPUserIDKey          string         `yaml:"ldap_user_id_key,omitempty"`
+	LDAPUseSSL             bool           `yaml:"ldap_use_ssl,omitempty"`
+	LdapRbac               LdapRbacConfig `yaml:"ldap_rbac,omitempty"`
+}
+
+type LdapRbacConfig struct {
+	EnableRBAC        bool                   `yaml:"enable_rbac,omitempty"`
+	DBConnString      string                 `yaml:"db_conn_string,omitempty"`
+	ADRoleNameFormats []ADRoleNameFormatSpec `yaml:"ad_rolename_formats,omitempty"`
+}
+
+type ADRoleNameFormatSpec struct {
+	Prefix       string `yaml:"prefix"`
+	Delimiter    string `yaml:"delimiter"`
+	FormatString string `yaml:"format_string"`
 }
 
 // DeploymentConfig provides details on how Kiali was deployed.
